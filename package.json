@@ -1,0 +1,32 @@
+{
+  "name": "discord-habit-buddy",
+  "version": "1.0.0",
+  "description": "A Discord bot powered by LLM to track habits.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "init-db": "node scripts/initDb.js",
+    "test": "jest",
+    "cli": "node cli.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "habit-tracker",
+    "llm",
+    "agent"
+  ],
+  "author": "Johan Fajrul",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^1.26.0",
+    "discord.js": "^14.7.1",
+    "dotenv": "^16.3.1",
+    "node-cron": "^3.0.3",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
