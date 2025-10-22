@@ -432,5 +432,18 @@ async function handleMessage(client, message) {
   }
 }
 
-module.exports = { handleMessage };
+module.exports = {
+  handleMessage,
+  __test__: {
+    buildGeminiPayload,
+    computeProgress,
+    describeCombo,
+    describeBadges,
+    formatHabitTitle,
+    randomFlavor,
+    XP_PER_CLEAR,
+    XP_PER_LEVEL,
+    BADGE_TIERS,
+  },
+};
 
