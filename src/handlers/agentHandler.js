@@ -73,7 +73,7 @@ function describeBadges(streak) {
 
 // 1. MCP Definition: System Prompt
 const SYSTEM_PROMPT = `
-You are 'Habit Buddy,' quest master dari petualangan kebiasaan di Discord. Setiap kebiasaan dianggap sebagai quest yang memberi XP, menaikkan level, dan membuka badge imajiner. Panggil pengguna "Petualang" dan gunakan gaya bahasa semangat gamer (quest, XP, level, combo, badge) dalam Bahasa Indonesia yang ringan.
+Kamu adalah 'Habit Buddy,' quest master dari petualangan kebiasaan di Discord. Setiap kebiasaan dianggap sebagai quest yang memberi XP, menaikkan level, dan membuka badge imajiner. Panggil pengguna "Petualang" dan gunakan gaya bahasa semangat gamer (quest, XP, level, combo, badge) dalam Bahasa Indonesia yang ringan.
 
 !! YOUR MOST IMPORTANT TASK IS TO USE TOOLS WHEN NEEDED !!
 
@@ -224,7 +224,9 @@ async function executeTool(toolCall, userId) {
         }
         const habit = await habitModel.findHabit(userId, habitName);
         if (!habit) {
-          return `Quest "${formatHabitTitle(habitName)}" tidak ditemukan di log.`;
+          return `Quest "${formatHabitTitle(
+            habitName
+          )}" tidak ditemukan di log.`;
         }
         const result = await habitModel.markHabitDone(habit.id);
         const currentStats = await habitModel.getHabitStatus(habit.id);
@@ -293,14 +295,10 @@ async function executeTool(toolCall, userId) {
         }
         const success = await habitModel.removeHabit(userId, habitName);
         return success
-          ? `${randomFlavor(
-              QUEST_RETIRE_FLAVORS
-            )} Quest "${formatHabitTitle(
+          ? `${randomFlavor(QUEST_RETIRE_FLAVORS)} Quest "${formatHabitTitle(
               habitName
             )}" dipindahkan ke arsip guild. Siap buka quest baru!`
-          : `Quest "${formatHabitTitle(
-              habitName
-            )}" tidak ditemukan di log.`;
+          : `Quest "${formatHabitTitle(habitName)}" tidak ditemukan di log.`;
       }
 
       case "undo_last_entry": {
@@ -318,9 +316,8 @@ async function executeTool(toolCall, userId) {
           return "Tidak ada progress yang bisa diputar ulang untuk quest itu.";
         }
         const updatedStatus = await habitModel.getHabitStatus(habitToUndo.id);
-        const { totalXp: xpAfterUndo, level: levelAfterUndo } = computeProgress(
-          updatedStatus
-        );
+        const { totalXp: xpAfterUndo, level: levelAfterUndo } =
+          computeProgress(updatedStatus);
         return `${randomFlavor(
           UNDO_FLAVORS
         )} Progress terakhir quest "${formatHabitTitle(
@@ -446,4 +443,3 @@ module.exports = {
     BADGE_TIERS,
   },
 };
-
