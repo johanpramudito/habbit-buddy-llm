@@ -174,7 +174,7 @@ Menguji streak harian, undo entri, hitung XP/level, badge, hingga pembentukan pa
 
 Hasilnya, Habit Buddy versi LLM ini bisa memahami gaya bicara alami, melakukan reasoning sederhana, sekaligus menjadi teman yang memberi insight—bukan hanya mesin pencatat kebiasaan.
 
----
+---s
 
 ## 🎬 Demo Aplikasi
 
