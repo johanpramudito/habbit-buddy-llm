@@ -178,8 +178,8 @@ Hasilnya, Habit Buddy versi LLM ini bisa memahami gaya bicara alami, melakukan r
 
 ## 🎬 Demo Aplikasi
 
-![Demo Interaksi 1](videollm1.gif)
-![Demo Interaksi 2](videollm2.gif)
+![Demo Interaksi 1](./videollm1.gif)
+![Demo Interaksi 2](./videollm2.gif)
 ---
 
 Selamat berburu XP! Jaga combo streak, kumpulkan badge Mythic Combo, dan pastikan setiap hari berakhir dengan **Quest Clear!**
