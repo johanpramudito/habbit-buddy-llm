@@ -1,4 +1,6 @@
-const habitModel = require("../models/habitModel"); //
+// src/handlers/agentHandler.js
+
+const habitModel = require("../models/habitModel");
 const { log, splitMessage } = require("../utils/logger");
 const { GoogleGenAI } = require("@google/genai");
 
@@ -33,7 +35,8 @@ function randomFlavor(options) {
 }
 
 function formatHabitTitle(name = "") {
-  return name
+  // <-- PERBAIKAN 1: (name || "") menangani null, undefined, dan string kosong
+  return (name || "")
     .split(" ")
     .filter(Boolean)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -438,6 +441,7 @@ module.exports = {
     describeBadges,
     formatHabitTitle,
     randomFlavor,
+    executeTool, // <-- PERBAIKAN 2: Ekspor untuk testing
     XP_PER_CLEAR,
     XP_PER_LEVEL,
     BADGE_TIERS,

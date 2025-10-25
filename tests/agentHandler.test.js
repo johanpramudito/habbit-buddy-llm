@@ -1,22 +1,8 @@
-// Import modul yang akan diuji
-const {
-  handleMessage,
-  __test__: {
-    buildGeminiPayload,
-    computeProgress,
-    describeCombo,
-    describeBadges,
-    formatHabitTitle,
-    randomFlavor,
-    XP_PER_CLEAR,
-    XP_PER_LEVEL,
-    BADGE_TIERS,
-  },
-} = require("../src/handlers/agentHandler"); // <-- PATH DIPERBAIKI
+// tests/agentHandler.test.js
 
-// --- Mocks ---
+// --- 1. DEFINISIKAN SEMUA MOCK OBJECT DULU ---
 
-// 1. Mock habitModel
+// 1a. Mock habitModel
 const mockHabitModel = {
   findHabit: jest.fn(),
   addHabit: jest.fn(),
@@ -26,19 +12,23 @@ const mockHabitModel = {
   removeHabit: jest.fn(),
   undoLastEntry: jest.fn(),
 };
-// Mock path yang benar
-jest.mock("../src/models/habitModel", () => mockHabitModel); // <-- PATH DIPERBAIKI
 
-// 2. Mock logger
+// 1b. Mock logger
 const mockLogger = {
   log: jest.fn(),
   splitMessage: jest.fn((msg) => [msg]),
 };
-// Mock path yang benar
-jest.mock("../src/utils/logger", () => mockLogger); // <-- PATH DIPERBAIKI
 
-// 3. Mock GoogleGenAI
+// 1c. Mock GoogleGenAI
 const mockGenerateContent = jest.fn();
+
+// --- 2. PANGGIL jest.mock SETELAH OBJECT DIBUAT ---
+
+// Mock path yang benar
+jest.mock("../src/models/habitModel", () => mockHabitModel); // <-- SEKARANG AMAN
+// Mock path yang benar
+jest.mock("../src/utils/logger", () => mockLogger); // <-- SEKARANG AMAN
+
 jest.mock("@google/genai", () => ({
   GoogleGenAI: jest.fn().mockImplementation(() => ({
     models: {
@@ -47,8 +37,25 @@ jest.mock("@google/genai", () => ({
   })),
 }));
 
-// --- End Mocks ---
+// --- 3. REQUIRE MODUL YANG DIUJI (PALING AKHIR) ---
+// Ini penting agar agentHandler me-require versi mock, bukan versi asli.
+const {
+  handleMessage,
+  __test__: {
+    buildGeminiPayload,
+    computeProgress,
+    describeCombo,
+    describeBadges,
+    formatHabitTitle,
+    randomFlavor,
+    executeTool, // <-- Impor fungsi yang sudah diekspor
+    XP_PER_CLEAR,
+    XP_PER_LEVEL,
+    BADGE_TIERS,
+  },
+} = require("../src/handlers/agentHandler");
 
+// --- 4. MULAI BLOK TES ---
 describe("Agent Handler", () => {
   let mockClient;
   let originalEnv;
@@ -58,8 +65,7 @@ describe("Agent Handler", () => {
   });
 
   beforeEach(() => {
-    jest.resetModules();
-    jest.clearAllMocks();
+    jest.clearAllMocks(); // Cukup clearAllMocks
 
     process.env.GEMINI_API_KEY = "test-api-key";
     process.env.GEMINI_MODEL = "test-model";
@@ -75,7 +81,7 @@ describe("Agent Handler", () => {
     process.env = originalEnv;
   });
 
-  // --- 1. Test Helper Functions (Total 18 tes) ---
+  // --- Test Helper Functions (Total 18 tes) ---
   describe("__test__ helper functions", () => {
     describe("formatHabitTitle", () => {
       it("should capitalize words correctly", () => {
@@ -93,6 +99,7 @@ describe("Agent Handler", () => {
       it("should handle existing capitalization", () => {
         expect(formatHabitTitle("makan Siang")).toBe("Makan Siang");
       });
+      // Tes ini akan lolos jika Anda juga menerapkan perbaikan di agentHandler.js
       it("should handle null or undefined", () => {
         expect(formatHabitTitle(undefined)).toBe("");
         expect(formatHabitTitle(null)).toBe("");
@@ -167,14 +174,15 @@ describe("Agent Handler", () => {
     });
   });
 
-  // --- 2. Test Tool Executor (Total 11 tes) ---
+  // --- Test Tool Executor (Total 11 tes) ---
+  // Memanggil 'executeTool' yang diimpor secara langsung
   describe("executeTool", () => {
     const userId = "user-123";
 
     it("add_habit: should add a new habit", async () => {
       mockHabitModel.findHabit.mockResolvedValue(null);
       const toolCall = { tool_name: "add_habit", args: { habitName: "olahraga" } };
-      const response = await executeTool(toolCall, userId);
+      const response = await executeTool(toolCall, userId); // <-- PANGGILAN LANGSUNG
       expect(mockHabitModel.addHabit).toHaveBeenCalledWith(userId, "olahraga");
       expect(response).toContain("Quest \"Olahraga\" resmi dibuka");
     });
@@ -265,7 +273,7 @@ describe("Agent Handler", () => {
     });
   });
 
-  // --- 3. Test Main Handler (Total 6 tes) ---
+  // --- Test Main Handler (Total 6 tes) ---
   describe("handleMessage", () => {
     const userId = "user-123";
     const message = { from: userId, body: "" };
@@ -297,11 +305,8 @@ describe("Agent Handler", () => {
       message.body = "selesai ngoding";
       const llmResponse = '{"tool_name": "mark_habit_done", "args": {"habitName": "ngoding"}}';
       mockGenerateContent.mockResolvedValue({ text: llmResponse });
-      // Mock 'findHabit' untuk mengembalikan null (habit tidak ditemukan)
       mockHabitModel.findHabit.mockResolvedValue(null);
-      
       await handleMessage(mockClient, message);
-      
       expect(mockGenerateContent).toHaveBeenCalled();
       expect(mockHabitModel.findHabit).toHaveBeenCalledWith(userId, "ngoding");
       expect(mockHabitModel.markHabitDone).not.toHaveBeenCalled();
@@ -332,26 +337,20 @@ describe("Agent Handler", () => {
       const maxHistoryLength = 11; // 1 system + 10 user/assistant
       const conversationalResponse = "Siap, laksanakan!";
 
-      // Panggil 6 kali (1 sys + 6 user + 6 assist = 13 pesan)
       for (let i = 1; i <= 6; i++) {
         mockGenerateContent.mockResolvedValue({ text: `${conversationalResponse} ${i}` });
         await handleMessage(mockClient, { from: userId, body: `Pesan user ${i}` });
       }
 
-      // Panggil ke-7
       mockGenerateContent.mockResolvedValue({ text: `${conversationalResponse} 7` });
       await handleMessage(mockClient, { from: userId, body: `Pesan user 7` });
       
-      // Cek panggilan LLM ke-7. 
-      // Harusnya histori sudah dipangkas.
-      // 13 pesan -> pangkas ke 11 (sys, user2-6, assist2-6)
-      // Panggilan ke-7 menambah user7 (total 12 pesan dikirim ke LLM)
-      // buildGeminiPayload memisahkan 1 sys, mengirim 11 'contents'
       const lastCallArgs = mockGenerateContent.mock.calls[6][0];
-      expect(lastCallArgs.contents.length).toBe(11); // 5 putaran lama + 1 user baru
-      // Cek bahwa 'Pesan user 1' sudah terpotong
-      expect(lastCallArgs.contents[0].parts[0].text).toBe("Pesan user 2"); 
-      expect(lastCallArgs.contents[10].parts[0].text).toBe("Pesan user 7");
+      const contents = lastCallArgs.contents;
+      
+      expect(contents.length).toBe(11); 
+      expect(contents[0].parts[0].text).toBe("Pesan user 2"); 
+      expect(contents[10].parts[0].text).toBe("Pesan user 7");
     });
   });
 });
